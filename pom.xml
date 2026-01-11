@@ -9,7 +9,7 @@
 		<relativePath/>
 	</parent>
 	<groupId>com.example</groupId>
-	<artifactId>task2-spring</artifactId>
+	<artifactId>task3-rest</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>demo</name>
 	<description>Demo project for Spring Boot</description>
@@ -85,6 +85,18 @@
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+
+		<dependency>
+  			<groupId>com.fasterxml.jackson.dataformat</groupId>
+  			<artifactId>jackson-dataformat-xml</artifactId>
+		</dependency>
+
+		<dependency>
+  			<groupId>org.springdoc</groupId>
+  			<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+ 			<version>3.0.0</version>
+		</dependency>
+
 	</dependencies>
 
 
