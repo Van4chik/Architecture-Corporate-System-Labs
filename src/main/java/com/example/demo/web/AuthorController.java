@@ -31,7 +31,9 @@ public class AuthorController {
     }
 
     @PostMapping
-    public String create(@Valid @ModelAttribute("author") Author author, BindingResult bindingResult, Model model) {
+    public String create(@Valid @ModelAttribute("author") Author author,
+                         BindingResult bindingResult,
+                         Model model) {
         if (bindingResult.hasErrors()) {
             model.addAttribute("pageTitle", "Добавить автора");
             model.addAttribute("formAction", "/authors");
@@ -50,7 +52,10 @@ public class AuthorController {
     }
 
     @PostMapping("/{id}")
-    public String update(@PathVariable Long id, @Valid @ModelAttribute("author") Author author, BindingResult bindingResult, Model model) {
+    public String update(@PathVariable Long id,
+                         @Valid @ModelAttribute("author") Author author,
+                         BindingResult bindingResult,
+                         Model model) {
         if (bindingResult.hasErrors()) {
             model.addAttribute("pageTitle", "Редактировать автора");
             model.addAttribute("formAction", "/authors/" + id);

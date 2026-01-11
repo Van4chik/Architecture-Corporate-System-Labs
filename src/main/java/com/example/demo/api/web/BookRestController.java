@@ -55,31 +55,20 @@ public class BookRestController {
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "OK", content = {
                     @Content(mediaType = "application/json", schema = @Schema(implementation = BooksXml.class)),
-                    @Content(mediaType = "application/xml", schema = @Schema(
-                            type = "string",
-                            description = "XML строка с XSL processing-instruction"
-                    ))
+                    @Content(mediaType = "application/xml", schema = @Schema(type = "string", description = "XML строка с XSL processing-instruction"))
             })
     })
     @GetMapping(produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
     public ResponseEntity<?> list(
-            @Parameter(in = ParameterIn.QUERY, name = "format",
-                    description = "Если указать format=xml — отдаём XML с XSL (для браузера)",
-                    example = "xml")
+            @Parameter(in = ParameterIn.QUERY, name = "format", description = "Если указать format=xml — отдаём XML с XSL (для браузера)", example = "xml")
             @RequestParam(value = "format", required = false) String format,
             HttpServletRequest request
     ) {
-        List<BookDto> books = bookService.findAllWithAuthor().stream()
-                .map(BookMapper::toDto)
-                .toList();
+        List<BookDto> books = bookService.findAllWithAuthor().stream().map(BookMapper::toDto).toList();
 
         BooksXml payload = new BooksXml(books);
 
-        if (wantsXml(format, request)) {
-            return ResponseEntity.ok()
-                    .contentType(MediaType.APPLICATION_XML)
-                    .body(xml.toXmlWithXslt(payload, "/xsl/books.xsl"));
-        }
+        if (wantsXml(format, request)) return ResponseEntity.ok().contentType(MediaType.APPLICATION_XML).body(xml.toXmlWithXslt(payload, "/xsl/books.xsl"));
         return ResponseEntity.ok(payload);
     }
 
@@ -94,30 +83,21 @@ public class BookRestController {
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "OK", content = {
                     @Content(mediaType = "application/json", schema = @Schema(implementation = BookDto.class)),
-                    @Content(mediaType = "application/xml", schema = @Schema(
-                            type = "string",
-                            description = "XML строка с XSL processing-instruction"
-                    ))
+                    @Content(mediaType = "application/xml", schema = @Schema(type = "string", description = "XML строка с XSL processing-instruction"))
             }),
             @ApiResponse(responseCode = "404", description = "Книга не найдена")
     })
     @GetMapping(value = "/{id}", produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
     public ResponseEntity<?> get(
             @PathVariable Long id,
-            @Parameter(in = ParameterIn.QUERY, name = "format",
-                    description = "Если указать format=xml — отдаём XML с XSL (для браузера)",
-                    example = "xml")
+            @Parameter(in = ParameterIn.QUERY, name = "format", description = "Если указать format=xml — отдаём XML с XSL (для браузера)", example = "xml")
             @RequestParam(value = "format", required = false) String format,
             HttpServletRequest request
     ) {
         Book book = bookService.getByIdWithAuthor(id);
         BookDto dto = BookMapper.toDto(book);
 
-        if (wantsXml(format, request)) {
-            return ResponseEntity.ok()
-                    .contentType(MediaType.APPLICATION_XML)
-                    .body(xml.toXmlWithXslt(dto, "/xsl/book.xsl"));
-        }
+        if (wantsXml(format, request)) return ResponseEntity.ok().contentType(MediaType.APPLICATION_XML).body(xml.toXmlWithXslt(dto, "/xsl/book.xsl"));
         return ResponseEntity.ok(dto);
     }
 
@@ -128,10 +108,7 @@ public class BookRestController {
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "Created", content = {
                     @Content(mediaType = "application/json", schema = @Schema(implementation = BookDto.class)),
-                    @Content(mediaType = "application/xml", schema = @Schema(
-                            type = "string",
-                            description = "XML строка с XSL processing-instruction"
-                    ))
+                    @Content(mediaType = "application/xml", schema = @Schema(type = "string", description = "XML строка с XSL processing-instruction"))
             }),
             @ApiResponse(responseCode = "400", description = "Ошибка валидации"),
             @ApiResponse(responseCode = "404", description = "Автор не найден (authorId)")
@@ -142,19 +119,13 @@ public class BookRestController {
     )
     public ResponseEntity<?> create(
             @Valid @RequestBody BookUpsertDto body,
-            @Parameter(in = ParameterIn.QUERY, name = "format",
-                    description = "Если указать format=xml — отдаём XML с XSL (для браузера)",
-                    example = "xml")
+            @Parameter(in = ParameterIn.QUERY, name = "format", description = "Если указать format=xml — отдаём XML с XSL (для браузера)", example = "xml")
             @RequestParam(value = "format", required = false) String format,
             HttpServletRequest request
     ) {
         Author author = authorService.getById(body.getAuthorId());
 
-        Book toCreate = Book.builder()
-                .title(body.getTitle())
-                .publishedYear(body.getPublishedYear())
-                .author(author)
-                .build();
+        Book toCreate = Book.builder().title(body.getTitle()).publishedYear(body.getPublishedYear()).author(author).build();
 
         Book created = bookService.create(toCreate);
 
@@ -163,11 +134,7 @@ public class BookRestController {
 
         URI location = URI.create("/api/books/" + created.getId());
 
-        if (wantsXml(format, request)) {
-            return ResponseEntity.created(location)
-                    .contentType(MediaType.APPLICATION_XML)
-                    .body(xml.toXmlWithXslt(dto, "/xsl/book.xsl"));
-        }
+        if (wantsXml(format, request)) return ResponseEntity.created(location).contentType(MediaType.APPLICATION_XML).body(xml.toXmlWithXslt(dto, "/xsl/book.xsl"));
         return ResponseEntity.created(location).body(dto);
     }
 
@@ -178,10 +145,7 @@ public class BookRestController {
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "OK", content = {
                     @Content(mediaType = "application/json", schema = @Schema(implementation = BookDto.class)),
-                    @Content(mediaType = "application/xml", schema = @Schema(
-                            type = "string",
-                            description = "XML строка с XSL processing-instruction"
-                    ))
+                    @Content(mediaType = "application/xml", schema = @Schema(type = "string", description = "XML строка с XSL processing-instruction"))
             }),
             @ApiResponse(responseCode = "404", description = "Книга или автор не найдены"),
             @ApiResponse(responseCode = "400", description = "Ошибка валидации")
@@ -194,29 +158,19 @@ public class BookRestController {
     public ResponseEntity<?> update(
             @PathVariable Long id,
             @Valid @RequestBody BookUpsertDto body,
-            @Parameter(in = ParameterIn.QUERY, name = "format",
-                    description = "Если указать format=xml — отдаём XML с XSL (для браузера)",
-                    example = "xml")
+            @Parameter(in = ParameterIn.QUERY, name = "format", description = "Если указать format=xml — отдаём XML с XSL (для браузера)", example = "xml")
             @RequestParam(value = "format", required = false) String format,
             HttpServletRequest request
     ) {
         Author author = authorService.getById(body.getAuthorId());
 
-        Book patch = Book.builder()
-                .title(body.getTitle())
-                .publishedYear(body.getPublishedYear())
-                .author(author)
-                .build();
+        Book patch = Book.builder().title(body.getTitle()).publishedYear(body.getPublishedYear()).author(author).build();
 
         bookService.update(id, patch);
 
         BookDto dto = BookMapper.toDto(bookService.getByIdWithAuthor(id));
 
-        if (wantsXml(format, request)) {
-            return ResponseEntity.ok()
-                    .contentType(MediaType.APPLICATION_XML)
-                    .body(xml.toXmlWithXslt(dto, "/xsl/book.xsl"));
-        }
+        if (wantsXml(format, request)) return ResponseEntity.ok().contentType(MediaType.APPLICATION_XML).body(xml.toXmlWithXslt(dto, "/xsl/book.xsl"));
         return ResponseEntity.ok(dto);
     }
 

@@ -36,7 +36,9 @@ public class BookController {
     }
 
     @PostMapping
-    public String create(@Valid @ModelAttribute("bookForm") BookForm form, BindingResult bindingResult, Model model) {
+    public String create(@Valid @ModelAttribute("bookForm") BookForm form,
+                         BindingResult bindingResult,
+                         Model model) {
 
         if (bindingResult.hasErrors()) {
             model.addAttribute("authors", authorService.findAll());
@@ -74,7 +76,10 @@ public class BookController {
     }
 
     @PostMapping("/{id}")
-    public String update(@PathVariable Long id, @Valid @ModelAttribute("bookForm") BookForm form, BindingResult bindingResult, Model model) {
+    public String update(@PathVariable Long id,
+                         @Valid @ModelAttribute("bookForm") BookForm form,
+                         BindingResult bindingResult,
+                         Model model) {
 
         if (bindingResult.hasErrors()) {
             model.addAttribute("authors", authorService.findAll());

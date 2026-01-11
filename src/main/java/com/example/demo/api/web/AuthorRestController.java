@@ -125,9 +125,7 @@ public class AuthorRestController {
         // проверим что автор существует
         authorService.getById(id);
 
-        List<BookDto> books = bookService.findAllByAuthorIdWithAuthor(id).stream()
-                .map(BookMapper::toDto)
-                .toList();
+        List<BookDto> books = bookService.findAllByAuthorIdWithAuthor(id).stream().map(BookMapper::toDto).toList();
 
         BooksXml payload = new BooksXml(books);
 
@@ -156,10 +154,7 @@ public class AuthorRestController {
             @RequestParam(value = "format", required = false) String format,
             HttpServletRequest request
     ) {
-        Author toCreate = Author.builder()
-                .fullName(body.getFullName())
-                .birthYear(body.getBirthYear())
-                .build();
+        Author toCreate = Author.builder().fullName(body.getFullName()).birthYear(body.getBirthYear()).build();
 
         Author created = authorService.create(toCreate);
         AuthorDto dto = AuthorMapper.toDto(created);
@@ -194,19 +189,12 @@ public class AuthorRestController {
             @RequestParam(value = "format", required = false) String format,
             HttpServletRequest request
     ) {
-        Author patch = Author.builder()
-                .fullName(body.getFullName())
-                .birthYear(body.getBirthYear())
-                .build();
+        Author patch = Author.builder().fullName(body.getFullName()).birthYear(body.getBirthYear()).build();
 
         Author updated = authorService.update(id, patch);
         AuthorDto dto = AuthorMapper.toDto(updated);
 
-        if (wantsXml(format, request)) {
-            return ResponseEntity.ok()
-                    .contentType(MediaType.APPLICATION_XML)
-                    .body(xml.toXmlWithXslt(dto, "/xsl/author.xsl"));
-        }
+        if (wantsXml(format, request)) return ResponseEntity.ok().contentType(MediaType.APPLICATION_XML).body(xml.toXmlWithXslt(dto, "/xsl/author.xsl"));
         return ResponseEntity.ok(dto);
     }
 

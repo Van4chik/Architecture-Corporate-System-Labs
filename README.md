@@ -1,101 +1,90 @@
 # Архитектура корпоративных систем
-## Практическая работа №3 — RESTful веб‑сервис
+## Практическая работа №4 — Java Message Service
 
 **Студент:** Мамонтов И. А.
 **Группа:** 6133-010402D
 
-CRUD-приложение, поддерживает JSON и XML. Для XML добавлено XSL‑преобразование, чтобы браузер показывал XML как HTML‑страницы. Подключена документация Swagger / OpenAPI.
-
-Предметная область: Авторы и книги (таблицы `authors` и `books`).
-
 ---
-### Задание 1 — JAX‑RS vs Spring REST
-Продолжение работы над Spring-проектом было выбрано сознательно, так как проект уже включает полностью настроенную типовую архитектуру (data/service/web), интеграцию с базой данных через Spring Data JPA, Flyway-миграции, валидацию (Jakarta Validation) и удобный запуск с помощью Spring Boot. Это позволяет сосредоточиться на реализации требований практического задания №3 (REST API с поддержкой JSON/XML и XSLT для XML), не тратя время на дополнительную инфраструктурную настройку и ручную сборку окружения, которая чаще требуется в варианте с JakartaEE.
+### 1) Настройка базы данных
+Создайте БД и пользователя. Пример:
+```sql
+CREATE DATABASE acs_pass;
+CREATE USER acs_user WITH PASSWORD 'acs_pass';
+GRANT ALL PRIVILEGES ON DATABASE acs_pass TO acs_user;
+````
 
-Для реализации REST в выбранном Spring-проекте используется Spring REST (@RestController, Spring Web), а не JAX-RS, поскольку Spring REST обеспечивает единый стек с минимальной сложностью: те же механизмы DI, сервисы и репозитории, единая обработка ошибок и валидации, а также единая конфигурация контента (application/json, application/xml) через MessageConverters. Использование JAX-RS внутри Spring-проекта потребовало бы отдельного JAX-RS runtime (например, Jersey или RESTEasy) и дополнительной настройки маршрутизации и сериализации, что усложнило бы проект без очевидной выгоды для выполнения требований. Поэтому оптимальным и наиболее «чистым» решением в данном случае является Spring REST.
+В `application.properties` должны быть корректные данные подключения:
 
-### Задание 2 — выбор предыдущего приложения и проектирование REST API
-В качестве базы выбрано приложение из Практической работы №2:
-
-- *Author*: `id`, `fullName`, `birthYear`
-- *Book*: `id`, `title`, `publishedYear`, `authorId`
-
-На его основе спроектировано REST API, которое предоставляет операции:
-- Получение списков и отдельных объектов.
-- Создание.
-- Обновление.
-- Удаление.
-
-Дополнительно:
-- `GET /api/authors/{id}/books` — книги конкретного автора.
-
----
-### REST API
-
-#### Authors
-- `GET  /api/authors` — список авторов.
-- `GET  /api/authors/{id}` — автор по id.
-- `POST /api/authors` — создать автора.
-- `PUT  /api/authors/{id}` — обновить автора.
-- `DELETE /api/authors/{id}` — удалить автора.
-- `GET /api/authors/{id}/books` — книги автора.
-
-#### Books
-- `GET  /api/books` — список книг.
-- `GET  /api/books/{id}` — книга по id.
-- `POST /api/books` — создать книгу.
-- `PUT  /api/books/{id}` — обновить книгу.
-- `DELETE /api/books/{id}` — удалить книгу.
-
----
-### JSON и XML
-
-#### 1) Через параметр.
-- `?format=xml` → отдаётся XML (и добавляется XSL PI для красивого HTML в браузере).
-
-Пример:
-- `http://localhost:8080/api/authors?format=xml`
-- `http://localhost:8080/api/books?format=xml`
-
-#### 2) Через заголовок Accept.
-- `Accept: application/json`
-- `Accept: application/xml`
-
----
-### XSL для XML в браузере
-
-Чтобы браузер показывал XML как HTML:
-1. XSL-файлы лежат в статике:
-   - `src/main/resources/static/xsl/authors.xsl`
-   - `src/main/resources/static/xsl/author.xsl`
-   - `src/main/resources/static/xsl/books.xsl`
-   - `src/main/resources/static/xsl/book.xsl`
-2. При XML‑ответе сервис добавляет в начало:
-   - `<?xml-stylesheet type="text/xsl" href="/xsl/....xsl"?>`
-
-Можно просто открыть в браузере:
-- `http://localhost:8080/api/authors?format=xml`
-- `http://localhost:8080/api/books?format=xml`
-
----
-### Swagger / OpenAPI
-- Swagger UI: `http://localhost:8080/swagger-ui.html`
-- OpenAPI JSON: `http://localhost:8080/v3/api-docs`
-
----
-### Запуск проекта
-
-#### 1) Настройка базы данных
-Создайте БД (пример):
-- database: `acs_pass`
-- user: `acs_user`
-- password: `acs_pass`
-
-Проверьте настройки в:
-- `src/main/resources/application.properties`
-
-Пример:
 ```properties
+spring.datasource.url=jdbc:postgresql://localhost:5432/acs_pass
+spring.datasource.username=acs_user
+spring.datasource.password=acs_pass
+```
+
+Flyway при запуске сам создаст таблицы, включая `audit_log`.
+
+---
+### 2) Запуск ActiveMQ Artemis и MailHog
+
+#### Вариант A - запуск через Docker
+Запуск Artemis
+
+```bash
+docker run -d --name artemis \
+  -p 61616:61616 -p 8161:8161 \
+  -e ARTEMIS_USER=admin -e ARTEMIS_PASSWORD=admin \
+  apache/activemq-artemis:2.41.0-alpine
+```
+
+Панель Artemis: [http://localhost:8161](http://localhost:8161)
+Логин / пароль: `admin / admin`
+
+Запуск MailHog
+```bash
+docker run -d --name mailhog \
+  -p 1025:1025 -p 8025:8025 \
+  mailhog/mailhog
+```
+
+Панель MailHog: [http://localhost:8025](http://localhost:8025)
+
+---
+#### Вариант B: запуск без Docker (локально)
+ActiveMQ Artemis без Docker
+
+1. Скачайте ActiveMQ Artemis с официального сайта (дистрибутив).
+2. Создайте брокер:
+```bash
+./artemis create mybroker
+```
+
+3. Запустите:
+```bash
+cd mybroker/bin
+./artemis run
+```
+
+4. Убедитесь, что порты:
+* 61616 (JMS).
+* 8161 (web console).
+
+MailHog без Docker
+1. Скачайте MailHog (бинарник под вашу ОС) из релизов.
+2. Запуск:
+```bash
+MailHog
+```
+
+3. Порты по умолчанию:
+* SMTP: 1025.
+* Web UI: 8025.
+
+---
+### 3) Настройки приложения
+Пример `src/main/resources/application.properties`:
+
+```properties
+# DB
 spring.datasource.url=jdbc:postgresql://localhost:5432/acs_pass
 spring.datasource.username=acs_user
 spring.datasource.password=acs_pass
@@ -104,22 +93,34 @@ spring.jpa.hibernate.ddl-auto=validate
 spring.jpa.open-in-view=false
 
 spring.flyway.enabled=true
-```
+spring.flyway.locations=classpath:db/migration
 
-#### 2) Запуск
-Из корня проекта:
+# JMS (Artemis)
+spring.artemis.mode=native
+spring.artemis.broker-url=tcp://localhost:61616
+spring.artemis.user=admin
+spring.artemis.password=admin
+
+app.jms.audit-queue=audit.queue
+app.jms.notify-queue=notify.queue
+
+# Email (MailHog)
+spring.mail.host=localhost
+spring.mail.port=1025
+spring.mail.properties.mail.smtp.auth=false
+spring.mail.properties.mail.smtp.starttls.enable=false
+
+app.notify.enabled=true
+app.notify.from=acs-pr4@localhost
+app.notify.to=test1@local.test,test2@local.test
+app.notify.subject-prefix=[ACS-PR4]
+```
+---
+
+### 4) Запуск приложения
+В корне проекта:
 ```bash
-./mvnw spring-boot:run
+mvn clean spring-boot:run
 ```
 
-Или собрать jar:
-```bash
-./mvnw clean package
-java -jar target/*.jar
-```
-
-После запуска:
-- Главная страница: `http://localhost:8080/`
-- MVC: `/authors`, `/books`
-- REST: `/api/...`
-- Swagger: `/swagger-ui.html`
+Swagger UI: [http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html)

@@ -24,7 +24,7 @@ public class Book {
     @Column(name = "published_year")
     private Integer publishedYear;
 
-    // автор может быть null (после удаления автора - книги остаются)
+    // автор МОЖЕТ быть null (после удаления автора - книги остаются)
     @ManyToOne(fetch = FetchType.LAZY, optional = true)
     @JoinColumn(name = "author_id", nullable = true)
     private Author author;
